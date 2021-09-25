@@ -1,35 +1,48 @@
 <template>
-  <h1>慕课乐高标准模版</h1>
-  <Hello msg="hello" />
-  <ul>
-    <li>开箱即用</li>
-    <li>typescript</li>
-    <li>Vue3</li>
-    <li>支持 tsx</li>
-    <li>eslint</li>
-    <li>简单易用可扩展</li>
-  </ul>
+  <div class="homepage-container">
+    <a-layout :style="{ background: '#fff' }">
+      <a-layout-header class="header">
+        <div class="page-title" :style="{ color: '#fff' }">
+          <router-link to="/">樂高</router-link>
+        </div>
+        <UserProfile :user="user" />
+      </a-layout-header>
+
+      <a-layout-content class="home-layout">
+        <div class="content-container">
+          <router-view />
+        </div>
+      </a-layout-content>
+
+      <a-layout-footer>© 2021 XXX All Rights Reserved XXX </a-layout-footer>
+    </a-layout>
+  </div>
 </template>
 
 <script lang="ts">
-import { defineComponent } from 'vue';
-import Hello from './components/Hello';
+import { defineComponent, computed } from 'vue';
+import { useStore } from 'vuex';
+import UserProfile from './components/UserProfile.vue';
 
 export default defineComponent({
-  name: 'App',
   components: {
-    Hello
+    UserProfile
+  },
+  name: 'App',
+  setup() {
+    const store = useStore();
+    const user = computed(() => store.state.user);
+    return {
+      user
+    };
   }
 });
 </script>
 
 <style>
-#app {
-  font-family: Avenir, Helvetica, Arial, sans-serif;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-  text-align: center;
-  color: #2c3e50;
-  margin-top: 60px;
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
 }
 </style>
