@@ -14,7 +14,7 @@ export default defineComponent({
   },
   setup() {
     const store = useStore<GlobalDataProps>();
-    const testData = computed(() => store.state.templates);
+    const testData = computed(() => store.state.templates.data);
     return { testData };
   }
 });
