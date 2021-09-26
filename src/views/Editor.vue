@@ -9,9 +9,12 @@
         <a-layout-content class="preview-container">
           <p>畫布區域</p>
           <div class="preview-list" id="canvas-area">
-            <div v-for="component in components" :key="component.id">
-              {{ component.props.text }}
-            </div>
+            <component
+              v-for="component in components"
+              :key="component.id"
+              :is="component.name"
+              v-bind="component.props"
+            />
           </div>
         </a-layout-content>
       </a-layout>
@@ -27,8 +30,12 @@
 import { defineComponent, computed } from 'vue';
 import { useStore } from 'vuex';
 import { GlobalDataProps } from '../store';
+import EText from '@/components/EText.vue';
 
 export default defineComponent({
+  components: {
+    EText
+  },
   setup() {
     const store = useStore<GlobalDataProps>();
     const components = computed(() => store.state.editor.components);
@@ -42,6 +49,9 @@ export default defineComponent({
 
 <style scoped>
 .editor {
-  border: solid 1px blue;
+}
+
+.preview-list {
+  position: relative;
 }
 </style>
