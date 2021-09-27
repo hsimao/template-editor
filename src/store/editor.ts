@@ -56,6 +56,11 @@ const editor: Module<EditorProps, GlobalDataProps> = {
       };
 
       state.components.push(newComponent);
+    },
+    removeComponent(state, id: string) {
+      state.components = state.components.filter(
+        component => component.id !== id
+      );
     }
   }
 };

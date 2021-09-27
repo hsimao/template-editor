@@ -13,12 +13,13 @@
         <a-layout-content class="preview-container">
           <p>畫布區域</p>
           <div class="preview-list" id="canvas-area">
-            <component
+            <EditorWrapper
               v-for="component in components"
               :key="component.id"
-              :is="component.name"
-              v-bind="component.props"
-            />
+              @onDelete="handleDeleteItem(component.id)"
+            >
+              <component :is="component.name" v-bind="component.props" />
+            </EditorWrapper>
           </div>
         </a-layout-content>
       </a-layout>
@@ -36,13 +37,15 @@ import { useStore } from 'vuex';
 import { GlobalDataProps } from '../store';
 import EText from '@/components/EText.vue';
 import ComponentsList from '@/components/ComponentsList.vue';
+import EditorWrapper from '@/components/EditorWrapper.vue';
 import defaultTextTemplates from '@/defaultTemplates';
 import { TextComponentProps } from '@/defaultProps';
 
 export default defineComponent({
   components: {
     EText,
-    ComponentsList
+    ComponentsList,
+    EditorWrapper
   },
   setup() {
     const store = useStore<GlobalDataProps>();
@@ -51,16 +54,21 @@ export default defineComponent({
       store.commit('addComponent', props);
     };
 
+    const handleDeleteItem = (id: string) => {
+      store.commit('removeComponent', id);
+    };
+
     return {
       components,
       defaultTextTemplates,
-      handleAddItem
+      handleAddItem,
+      handleDeleteItem
     };
   }
 });
 </script>
 
-<style scoped>
+<style lang="scss" scoped>
 .ant-layout {
   min-height: calc(100vh - 64px - 70px);
 }
