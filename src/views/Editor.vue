@@ -16,7 +16,10 @@
             <EditorWrapper
               v-for="component in components"
               :key="component.id"
-              @onDelete="handleDeleteItem(component.id)"
+              :id="component.id"
+              :active="currentElement && currentElement.id === component.id"
+              @onDelete="handleDeleteItem"
+              @setActive="handleActive"
             >
               <component :is="component.name" v-bind="component.props" />
             </EditorWrapper>
@@ -24,9 +27,10 @@
         </a-layout-content>
       </a-layout>
 
-      <a-layout-sider width="300" style="background: purple" class="setting"
-        >組件屬性</a-layout-sider
-      >
+      <a-layout-sider width="300" style="background: purple" class="setting">
+        組件屬性
+        <pre>{{ currentElement && currentElement.props }}</pre>
+      </a-layout-sider>
     </a-layout>
   </div>
 </template>
@@ -35,6 +39,7 @@
 import { defineComponent, computed } from 'vue';
 import { useStore } from 'vuex';
 import { GlobalDataProps } from '../store';
+import { ComponentData } from '../store/editor';
 import EText from '@/components/EText.vue';
 import ComponentsList from '@/components/ComponentsList.vue';
 import EditorWrapper from '@/components/EditorWrapper.vue';
@@ -49,7 +54,13 @@ export default defineComponent({
   },
   setup() {
     const store = useStore<GlobalDataProps>();
+    console.log(store.getters);
+
     const components = computed(() => store.state.editor.components);
+    const currentElement = computed<ComponentData | null>(
+      () => store.getters.getCurrentElement
+    );
+
     const handleAddItem = (props: TextComponentProps) => {
       store.commit('addComponent', props);
     };
@@ -58,11 +69,17 @@ export default defineComponent({
       store.commit('removeComponent', id);
     };
 
+    const handleActive = (id: string) => {
+      store.commit('setActive', id);
+    };
+
     return {
       components,
       defaultTextTemplates,
+      currentElement,
       handleAddItem,
-      handleDeleteItem
+      handleDeleteItem,
+      handleActive
     };
   }
 });

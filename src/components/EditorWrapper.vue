@@ -1,5 +1,5 @@
 <template>
-  <div class="editor-wrapper">
+  <div class="editor-wrapper" :class="{ active }" @click="handleClick">
     <div class="editor-wrapper__close" @click="handleDelete">X</div>
     <slot />
   </div>
@@ -10,12 +10,24 @@ import { defineComponent } from 'vue';
 
 export default defineComponent({
   name: 'EditorWrapper',
-  emit: ['on-delete'],
+  emit: ['on-delete', 'set-active'],
+  props: {
+    id: {
+      type: String,
+      required: true
+    },
+    active: {
+      type: Boolean,
+      default: false
+    }
+  },
   setup(props, { emit }) {
-    const handleDelete = () => emit('on-delete');
+    const handleDelete = () => emit('on-delete', props.id);
+    const handleClick = () => emit('set-active', props.id);
 
     return {
-      handleDelete
+      handleDelete,
+      handleClick
     };
   }
 });
@@ -27,6 +39,10 @@ export default defineComponent({
   display: flex;
   padding: 16px;
   border: dashed 1px gray;
+
+  &.active {
+    border: solid 1px #1890ff;
+  }
 
   &__close {
     position: absolute;
