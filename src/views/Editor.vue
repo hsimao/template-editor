@@ -1,8 +1,12 @@
 <template>
   <div class="editor" id="editor-layout-main">
     <a-layout>
-      <a-layout-sider width="300" style="background: yellow">
+      <a-layout-sider width="300" style="background: white">
         <div class="sidebar-container">組件列表</div>
+        <ComponentsList
+          :list="defaultTextTemplates"
+          @onItemClick="handleAddItem"
+        />
       </a-layout-sider>
 
       <a-layout style="padding: 0 24px 24px">
@@ -31,24 +35,34 @@ import { defineComponent, computed } from 'vue';
 import { useStore } from 'vuex';
 import { GlobalDataProps } from '../store';
 import EText from '@/components/EText.vue';
+import ComponentsList from '@/components/ComponentsList.vue';
+import defaultTextTemplates from '@/defaultTemplates';
+import { TextComponentProps } from '@/defaultProps';
 
 export default defineComponent({
   components: {
-    EText
+    EText,
+    ComponentsList
   },
   setup() {
     const store = useStore<GlobalDataProps>();
     const components = computed(() => store.state.editor.components);
+    const handleAddItem = (props: TextComponentProps) => {
+      store.commit('addComponent', props);
+    };
 
     return {
-      components
+      components,
+      defaultTextTemplates,
+      handleAddItem
     };
   }
 });
 </script>
 
 <style scoped>
-.editor {
+.ant-layout {
+  min-height: calc(100vh - 64px - 70px);
 }
 
 .preview-list {

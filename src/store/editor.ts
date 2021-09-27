@@ -1,6 +1,7 @@
 import { Module } from 'vuex';
 import { GlobalDataProps } from './index';
 import { v4 as uuidv4 } from 'uuid';
+import { TextComponentProps } from '../defaultProps';
 
 export interface EditorProps {
   // 提供中間編輯器渲染的組件
@@ -45,6 +46,17 @@ const editor: Module<EditorProps, GlobalDataProps> = {
   state: {
     components: testComponents,
     currentElement: ''
+  },
+  mutations: {
+    addComponent(state, props: Partial<TextComponentProps>) {
+      const newComponent: ComponentData = {
+        id: uuidv4(),
+        name: 'e-text',
+        props
+      };
+
+      state.components.push(newComponent);
+    }
   }
 };
 

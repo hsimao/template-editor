@@ -1,6 +1,45 @@
 import { mapValues, without } from 'lodash-es';
 
-export const commonDefaultProps = {
+export interface CommonComponentProps {
+  // actions
+  actionType: string;
+  url: string;
+  // size
+  height: string;
+  width: string;
+  paddingLeft: string;
+  paddingRight: string;
+  paddingTop: string;
+  paddingBottom: string;
+  // border
+  borderStyle: string;
+  borderColor: string;
+  borderWidth: string;
+  borderRaduis: string;
+  // shadow and opacity
+  boxShadow: string;
+  opacity: string;
+  // position and x, y
+  position: string;
+  left: string;
+  right: string;
+  top: string;
+}
+
+export interface TextComponentProps extends CommonComponentProps {
+  text: string;
+  fontSize: string;
+  fontFamily: string;
+  fontWeight: string;
+  fontStyle: string;
+  textDecoration: string;
+  lineHeight: string;
+  textAlign: string;
+  color: string;
+  backgroundColor: string;
+}
+
+export const commonDefaultProps: CommonComponentProps = {
   actionType: '',
   url: '',
   // size
@@ -17,7 +56,7 @@ export const commonDefaultProps = {
   borderRaduis: '0',
   // shadow and opacity
   boxShadow: '0 0 0 #000000',
-  opacity: 1,
+  opacity: '1',
   // position and x, y
   position: 'absolute',
   left: '0',
@@ -25,7 +64,7 @@ export const commonDefaultProps = {
   top: '0'
 };
 
-export const textDefaultProps = {
+export const textDefaultProps: TextComponentProps = {
   // basic props - font styles
   text: '內容',
   fontSize: '14px',
@@ -48,12 +87,10 @@ export const textStylePropNames = without(
   'text'
 );
 
-export const transformComponentProps = <T extends { [key: string]: any }>(
-  props: T
-) => {
+export const transformComponentProps = (props: TextComponentProps) => {
   return mapValues(props, item => {
     return {
-      type: item.constructor,
+      type: item.constructor as StringConstructor,
       default: item
     };
   });
