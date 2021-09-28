@@ -27,6 +27,8 @@ export const testComponents: ComponentData[] = [
       url: 'https://www.facebook.com/',
       text: 'hello',
       fontSize: '20px',
+      textAlign: 'left',
+      fontFamily: '',
       lineHeight: '1',
       color: 'green'
     }
@@ -37,14 +39,22 @@ export const testComponents: ComponentData[] = [
     props: {
       text: 'hello2',
       fontSize: '12px',
+      textAlign: 'left',
       fontWeight: 'bold',
+      fontFamily: '',
       lineHeight: '2'
     }
   },
   {
     id: uuidv4(),
     name: 'e-text',
-    props: { text: 'hello3', fontSize: '16px' }
+    props: {
+      text: 'hello3',
+      fontSize: '16px',
+      textAlign: 'left',
+      lineHeight: '3',
+      fontFamily: ''
+    }
   }
 ];
 

@@ -11,7 +11,18 @@
         :is="item.component"
         :value="item.value"
         v-bind="item.extraProps"
-      />
+      >
+        <template v-if="item.subComponent && item.options">
+          <component
+            v-for="(subData, index) in item.options"
+            :key="index"
+            :is="item.subComponent"
+            :value="subData.value"
+          >
+            {{ subData.text }}
+          </component>
+        </template>
+      </component>
     </div>
   </div>
 </template>
@@ -35,7 +46,11 @@ export default defineComponent({
         const key = it as keyof PropsToForms;
         const item = mapPropsToForms[key];
         if (item) {
-          item.value = props.props[key];
+          const value = item.initalTransform
+            ? item.initalTransform(props.props[key])
+            : props.props[key];
+
+          item.value = value;
           acc[key] = item;
         }
         return acc;
