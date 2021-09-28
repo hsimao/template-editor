@@ -5,7 +5,13 @@
       :key="index"
       class="props-table__item"
     >
-      <component :is="item.component" :value="item.value" />
+      <span class="props-table__label">{{ item.description }}</span>
+      <component
+        class="props-table__component"
+        :is="item.component"
+        :value="item.value"
+        v-bind="item.extraProps"
+      />
     </div>
   </div>
 </template>
@@ -43,4 +49,27 @@ export default defineComponent({
 });
 </script>
 
-<style scoped></style>
+<style lang="scss" scoped>
+.props-table {
+  padding: 0 8px;
+
+  &__item {
+    display: flex;
+    align-items: center;
+
+    & + & {
+      margin-top: 10px;
+    }
+  }
+
+  &__label {
+    flex: 0 0 auto;
+    width: 20%;
+  }
+
+  &__component {
+    width: 80%;
+    margin-left: 8px;
+  }
+}
+</style>

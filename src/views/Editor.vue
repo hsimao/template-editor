@@ -27,7 +27,7 @@
         </a-layout-content>
       </a-layout>
 
-      <a-layout-sider width="300" style="background: purple" class="setting">
+      <a-layout-sider width="300" style="background: white" class="setting">
         組件屬性
         <PropsTable v-if="currentElement" :props="currentElement.props" />
         <pre>{{ currentElement && currentElement.props }}</pre>

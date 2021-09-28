@@ -27,13 +27,19 @@ export const testComponents: ComponentData[] = [
       url: 'https://www.facebook.com/',
       text: 'hello',
       fontSize: '20px',
+      lineHeight: '1',
       color: 'green'
     }
   },
   {
     id: uuidv4(),
     name: 'e-text',
-    props: { text: 'hello2', fontSize: '12px', fontWeight: 'bold' }
+    props: {
+      text: 'hello2',
+      fontSize: '12px',
+      fontWeight: 'bold',
+      lineHeight: '2'
+    }
   },
   {
     id: uuidv4(),
