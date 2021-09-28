@@ -9,7 +9,7 @@
       <component
         class="props-table__component"
         :is="item.component"
-        :value="item.value"
+        :[item.valueProp]="item.value"
         v-bind="item.extraProps"
       >
         <template v-if="item.subComponent && item.options">
@@ -49,6 +49,8 @@ export default defineComponent({
           const value = item.initalTransform
             ? item.initalTransform(props.props[key])
             : props.props[key];
+
+          item.valueProp = item.valueProp || 'value';
 
           item.value = value;
           acc[key] = item;

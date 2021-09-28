@@ -10,6 +10,8 @@ export interface PropToForm {
   options?: { text: string; value: any }[];
   // 轉換傳遞給組件內的 value
   initalTransform?: (v: any) => any;
+  // 自定義傳遞到組件的 value key
+  valueProp?: string;
 }
 
 export type PropsToForms = {
