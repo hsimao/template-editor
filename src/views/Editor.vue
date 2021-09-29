@@ -10,9 +10,9 @@
       </a-layout-sider>
 
       <a-layout style="padding: 0 24px 24px">
-        <a-layout-content class="preview-container">
+        <a-layout-content class="editor__content preview-container">
           <p>畫布區域</p>
-          <div class="preview-list" id="canvas-area">
+          <div class="editor__preview" id="canvas-area">
             <EditorWrapper
               v-for="component in components"
               :key="component.id"
@@ -29,7 +29,11 @@
 
       <a-layout-sider width="300" style="background: white" class="setting">
         組件屬性
-        <PropsTable v-if="currentElement" :props="currentElement.props" />
+        <PropsTable
+          v-if="currentElement"
+          :props="currentElement.props"
+          @change="handleChange"
+        />
         <pre>{{ currentElement && currentElement.props }}</pre>
       </a-layout-sider>
     </a-layout>
@@ -76,24 +80,34 @@ export default defineComponent({
       store.commit('setActive', id);
     };
 
+    const handleChange = (e: any) => {
+      store.commit('updateComponent', e);
+    };
+
     return {
       components,
       defaultTextTemplates,
       currentElement,
       handleAddItem,
       handleDeleteItem,
-      handleActive
+      handleActive,
+      handleChange
     };
   }
 });
 </script>
 
 <style lang="scss" scoped>
-.ant-layout {
-  min-height: calc(100vh - 64px - 70px);
-}
+.editor {
+  max-width: 1380px;
+  margin: 0 auto;
 
-.preview-list {
-  position: relative;
+  .ant-layout {
+    min-height: calc(100vh - 64px - 70px);
+  }
+
+  &__preview {
+    position: relative;
+  }
 }
 </style>

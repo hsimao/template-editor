@@ -11,6 +11,7 @@
         :is="item.component"
         :[item.valueProp]="item.value"
         v-bind="item.extraProps"
+        v-on="item.events"
       >
         <template v-if="item.subComponent && item.options">
           <component
@@ -32,6 +33,18 @@ import { defineComponent, computed, PropType } from 'vue';
 import { PropsToForms, mapPropsToForms } from '@/propsMap';
 import { TextComponentProps } from '@/defaultProps';
 
+interface RenderProps {
+  component: string;
+  subComponent?: string;
+  value: string;
+  extraProps?: { [key: string]: any };
+  text?: string;
+  options?: { text: string; value: any }[];
+  valueProp: string;
+  eventName: string;
+  events: { [key: string]: (e: any) => void };
+}
+
 export default defineComponent({
   name: 'PropsTable',
   props: {
@@ -40,23 +53,44 @@ export default defineComponent({
       required: true
     }
   },
-  setup(props) {
+  emits: ['change'],
+  setup(props, { emit }) {
+    // 將 PropToForm 轉換成渲染成組件的參數格式
     const formatProps = computed(() => {
       return Object.keys(props.props).reduce((acc, it: string) => {
         const key = it as keyof PropsToForms;
         const item = mapPropsToForms[key];
+
         if (item) {
-          const value = item.initalTransform
-            ? item.initalTransform(props.props[key])
+          const {
+            valueProp = 'value',
+            eventName = 'change',
+            inputTransform,
+            outputTransform
+          } = item;
+
+          const value = inputTransform
+            ? inputTransform(props.props[key])
             : props.props[key];
 
-          item.valueProp = item.valueProp || 'value';
+          const renderData: RenderProps = {
+            ...item,
+            value,
+            valueProp,
+            eventName,
+            events: {
+              [eventName]: (e: any) =>
+                emit('change', {
+                  key,
+                  value: outputTransform ? outputTransform(e) : e
+                })
+            }
+          };
 
-          item.value = value;
-          acc[key] = item;
+          acc[key] = renderData;
         }
         return acc;
-      }, {} as PropsToForms);
+      }, {} as { [key: string]: RenderProps });
     });
 
     return {

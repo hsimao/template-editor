@@ -3,15 +3,15 @@ import { TextComponentProps } from './defaultProps';
 export interface PropToForm {
   component: string;
   subComponent?: string;
-  value?: string;
   extraProps?: { [key: string]: any };
   description?: string;
   // 提供 subComponent 渲染的資料
   options?: { text: string; value: any }[];
   // 轉換傳遞給組件內的 value
-  initalTransform?: (v: any) => any;
-  // 自定義傳遞到組件的 value key
+  inputTransform?: (v: any) => any;
+  outputTransform?: (v: any) => any;
   valueProp?: string;
+  eventName?: string;
 }
 
 export type PropsToForms = {
@@ -23,18 +23,21 @@ export const mapPropsToForms: PropsToForms = {
   text: {
     description: '內文',
     component: 'a-textarea',
-    extraProps: { rows: 3 }
+    extraProps: { rows: 3 },
+    outputTransform: (e: any) => e.target.value
   },
   fontSize: {
     description: '文字大小',
     component: 'a-input-number',
-    initalTransform: (value: string) => parseInt(value)
+    inputTransform: (value: string) => parseInt(value),
+    outputTransform: (value: number) => (value ? `${value}px` : '')
   },
   lineHeight: {
     description: '文字行高',
     component: 'a-slider',
     extraProps: { min: 0, max: 3, step: 0.1 },
-    initalTransform: (value: string) => parseFloat(value)
+    inputTransform: (value: string) => parseFloat(value),
+    outputTransform: (value: number) => value.toString()
   },
   textAlign: {
     description: '對齊方向',
@@ -44,7 +47,8 @@ export const mapPropsToForms: PropsToForms = {
       { text: '左', value: 'left' },
       { text: '中', value: 'center' },
       { text: '右', value: 'right' }
-    ]
+    ],
+    outputTransform: (e: any) => e.target.value
   },
   fontFamily: {
     description: '字體',
