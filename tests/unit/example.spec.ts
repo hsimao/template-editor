@@ -1,6 +1,9 @@
 import { shallowMount } from '@vue/test-utils';
 import HelloWorld from '@/components/HelloWorld.vue';
-// import Hello from '@/components/Hello.vue';
+import flushPromises from 'flush-promises';
+import axios from 'axios';
+jest.mock('axios');
+const mockAxios = axios as jest.Mocked<typeof axios>;
 
 describe('HelloWorld.vue', () => {
   it('renders props.msg when passed', () => {
@@ -41,5 +44,39 @@ describe('HelloWorld.vue', () => {
     if (events) {
       expect(events[0]).toEqual([todoContent]);
     }
+  });
+
+  it('should load user message when click the load button', async () => {
+    const msg = 'new message';
+    const wrapper = shallowMount(HelloWorld, {
+      props: { msg }
+    });
+
+    mockAxios.get.mockResolvedValueOnce({ data: { username: 'mars' } });
+    await wrapper.get('.loadUser').trigger('click');
+    expect(mockAxios.get).toHaveBeenCalled();
+    expect(wrapper.find('.loading').exists()).toBeTruthy();
+
+    // 將所有 Promise pending 狀態改為完成
+    await flushPromises();
+    expect(wrapper.find('.loading').exists()).toBeFalsy();
+    expect(wrapper.get('.userName').text()).toBe('mars');
+  });
+
+  it('sholud load error when return promise reject', async () => {
+    const msg = 'new message';
+    const wrapper = shallowMount(HelloWorld, {
+      props: { msg }
+    });
+
+    mockAxios.get.mockRejectedValueOnce('error');
+    await wrapper.get('.loadUser').trigger('click');
+    expect(mockAxios.get).toHaveBeenCalled();
+    expect(wrapper.find('.loading').exists()).toBeTruthy();
+
+    // 將所有 Promise pending 狀態改為完成
+    await flushPromises();
+    expect(wrapper.find('.loading').exists()).toBeFalsy();
+    expect(wrapper.find('.error').exists()).toBeTruthy();
   });
 });
