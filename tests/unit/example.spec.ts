@@ -34,5 +34,12 @@ describe('HelloWorld.vue', () => {
 
     await wrapper.get('.addTodo').trigger('click');
     expect(wrapper.findAll('li')).toHaveLength(1);
+    expect(wrapper.get('li').text()).toBe(todoContent);
+    expect(wrapper.emitted()).toHaveProperty('send');
+
+    const events = wrapper.emitted('send');
+    if (events) {
+      expect(events[0]).toEqual([todoContent]);
+    }
   });
 });
