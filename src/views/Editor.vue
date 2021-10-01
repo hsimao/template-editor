@@ -29,7 +29,7 @@
 
       <a-layout-sider width="300" style="background: white" class="setting">
         組件屬性
-        <PropsTable2
+        <PropsTable
           v-if="currentElement"
           :props="currentElement.props"
           @change="handleChange"
@@ -48,8 +48,8 @@ import { ComponentData } from '../store/editor';
 import EText from '@/components/EText.vue';
 import ComponentsList from '@/components/ComponentsList.vue';
 import EditorWrapper from '@/components/EditorWrapper.vue';
-// import PropsTable from '@/components/PropsTable.vue';
-import PropsTable2 from '@/components/PropsTable2';
+import PropsTable from '@/components/PropsTable.vue';
+// import PropsTable2 from '@/components/PropsTable2';
 import defaultTextTemplates from '@/defaultTemplates';
 import { TextComponentProps } from '@/defaultProps';
 
@@ -58,8 +58,8 @@ export default defineComponent({
     EText,
     ComponentsList,
     EditorWrapper,
-    // PropsTable,
-    PropsTable2
+    PropsTable
+    // PropsTable2
   },
   setup() {
     const store = useStore<GlobalDataProps>();

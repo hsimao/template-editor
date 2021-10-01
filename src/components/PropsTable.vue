@@ -20,7 +20,7 @@
             :is="item.subComponent"
             :value="subData.value"
           >
-            {{ subData.text }}
+            <RenderVnode :vNode="subData.text" />
           </component>
         </template>
       </component>
@@ -29,9 +29,10 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, computed, PropType } from 'vue';
+import { defineComponent, computed, PropType, VNode } from 'vue';
 import { PropsToForms, mapPropsToForms } from '@/propsMap';
 import { TextComponentProps } from '@/defaultProps';
+import RenderVnode from '@/components/RenderVnode';
 
 interface RenderProps {
   component: string;
@@ -39,7 +40,7 @@ interface RenderProps {
   value: string;
   extraProps?: { [key: string]: any };
   text?: string;
-  options?: { text: string; value: any }[];
+  options?: { text: string | VNode; value: any }[];
   valueProp: string;
   eventName: string;
   events: { [key: string]: (e: any) => void };
@@ -47,6 +48,9 @@ interface RenderProps {
 
 export default defineComponent({
   name: 'PropsTable',
+  components: {
+    RenderVnode
+  },
   props: {
     props: {
       type: Object as PropType<TextComponentProps>,
