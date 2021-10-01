@@ -1,36 +1,35 @@
-import { shallowMount } from '@vue/test-utils';
+import { shallowMount, VueWrapper } from '@vue/test-utils';
 import HelloWorld from '@/components/HelloWorld.vue';
 import flushPromises from 'flush-promises';
 import axios from 'axios';
+
 jest.mock('axios');
 const mockAxios = axios as jest.Mocked<typeof axios>;
-
+const msg = 'new message';
+let wrapper: VueWrapper<any>;
 describe('HelloWorld.vue', () => {
-  it('renders props.msg when passed', () => {
-    const msg = 'new message';
-    const wrapper = shallowMount(HelloWorld, {
+  beforeAll(() => {
+    wrapper = shallowMount(HelloWorld, {
       props: { msg }
     });
+  });
 
+  afterEach(() => {
+    // 執行每個 it 時重置
+    mockAxios.get.mockReset();
+  });
+
+  it('renders props.msg when passed', () => {
     expect(wrapper.text()).toMatch(msg);
   });
 
   it('should update the count when clicking the button', async () => {
-    const msg = 'new message';
-    const wrapper = shallowMount(HelloWorld, {
-      props: { msg }
-    });
-
     await wrapper.get('button').trigger('click');
     expect(wrapper.get('button').text()).toBe('2');
   });
 
   it('should add todo when fill the input and click the add button', async () => {
-    const msg = 'new message';
     const todoContent = 'buy milk';
-    const wrapper = shallowMount(HelloWorld, {
-      props: { msg }
-    });
 
     await wrapper.get('input').setValue(todoContent);
     expect(wrapper.get('input').element.value).toBe(todoContent);
@@ -47,11 +46,6 @@ describe('HelloWorld.vue', () => {
   });
 
   it('should load user message when click the load button', async () => {
-    const msg = 'new message';
-    const wrapper = shallowMount(HelloWorld, {
-      props: { msg }
-    });
-
     mockAxios.get.mockResolvedValueOnce({ data: { username: 'mars' } });
     await wrapper.get('.loadUser').trigger('click');
     expect(mockAxios.get).toHaveBeenCalled();
@@ -64,15 +58,11 @@ describe('HelloWorld.vue', () => {
   });
 
   it('sholud load error when return promise reject', async () => {
-    const msg = 'new message';
-    const wrapper = shallowMount(HelloWorld, {
-      props: { msg }
-    });
-
     mockAxios.get.mockRejectedValueOnce('error');
     await wrapper.get('.loadUser').trigger('click');
     expect(mockAxios.get).toHaveBeenCalled();
     expect(wrapper.find('.loading').exists()).toBeTruthy();
+    expect(mockAxios.get).toHaveBeenCalledTimes(1);
 
     // 將所有 Promise pending 狀態改為完成
     await flushPromises();
