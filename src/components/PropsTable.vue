@@ -5,7 +5,7 @@
       :key="index"
       class="props-table__item"
     >
-      <span class="props-table__label">{{ item.description }}</span>
+      <span class="props-table__label">{{ item.text }}</span>
       <component
         class="props-table__component"
         :is="item.component"
