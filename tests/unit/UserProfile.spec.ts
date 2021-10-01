@@ -1,9 +1,14 @@
 import { mount, VueWrapper } from '@vue/test-utils';
+import { message } from 'ant-design-vue';
+import store from '@/store/index';
 import UserProfile from '@/components/UserProfile.vue';
 let wrapper: VueWrapper<any>;
 
-jest.mock('ant-design-vue');
-jest.mock('vuex');
+jest.mock('ant-design-vue', () => ({
+  message: {
+    success: jest.fn()
+  }
+}));
 jest.mock('vue-router');
 
 const mockComponent = {
@@ -28,12 +33,20 @@ describe('UserProfile component', () => {
       props: {
         user: { isLogin: false }
       },
-      global: { components: globalComponents }
+      global: {
+        components: globalComponents,
+        provide: {
+          store
+        }
+      }
     });
   });
 
-  it('sholud render login button when login is false', () => {
+  it('sholud render login button when login is false', async () => {
     expect(wrapper.get('div').text()).toBe('登入');
+    await wrapper.get('div').trigger('click');
+    expect(message.success).toHaveBeenCalled();
+    expect(store.state.user.userName).toBe('Mars');
   });
 
   it('sholud render username when login is true', async () => {
