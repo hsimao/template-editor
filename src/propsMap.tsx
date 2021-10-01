@@ -52,6 +52,13 @@ export const mapPropsToForms: PropsToForms = {
     inputTransform: (value: string) => parseFloat(value),
     outputTransform: (value: number) => value.toString()
   },
+  opacity: {
+    text: '透明度',
+    component: 'a-slider',
+    extraProps: { min: 0, max: 1, step: 0.1 },
+    inputTransform: (value: string) => parseFloat(value),
+    outputTransform: (value: number) => value.toString()
+  },
   textAlign: {
     text: '對齊方向',
     component: 'a-radio-group',

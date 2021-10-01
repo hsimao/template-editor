@@ -26,6 +26,7 @@ export default [
     paddingLeft: '16px',
     paddingRight: '16px',
     paddingTop: '6px',
-    paddingBottom: '6px'
+    paddingBottom: '6px',
+    opacity: '1'
   }
 ];
