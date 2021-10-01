@@ -68,7 +68,8 @@ const editor: Module<EditorProps, GlobalDataProps> = {
       const newComponent: ComponentData = {
         id: uuidv4(),
         name: 'e-text',
-        props
+        // NOTE: 使用解構避免同樣 defaultTextTemplates 屬性參考相同記憶體位置, 導致同步修改到
+        props: { ...props }
       };
 
       state.components.push(newComponent);
