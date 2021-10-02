@@ -33,6 +33,7 @@ import { defineComponent, computed, PropType, VNode } from 'vue';
 import { PropsToForms, mapPropsToForms } from '@/propsMap';
 import { TextComponentProps } from '@/defaultProps';
 import RenderVnode from '@/components/RenderVnode';
+import ColorPicker from '@/components/ColorPicker.vue';
 
 interface RenderProps {
   component: string;
@@ -49,7 +50,8 @@ interface RenderProps {
 export default defineComponent({
   name: 'PropsTable',
   components: {
-    RenderVnode
+    RenderVnode,
+    ColorPicker
   },
   props: {
     props: {
