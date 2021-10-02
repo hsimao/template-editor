@@ -9,7 +9,13 @@ jest.mock('ant-design-vue', () => ({
     success: jest.fn()
   }
 }));
-jest.mock('vue-router');
+
+const mockedRoutes: string[] = [];
+jest.mock('vue-router', () => ({
+  useRouter: () => ({
+    push: (url: string) => mockedRoutes.push(url)
+  })
+}));
 
 const mockComponent = {
   template: '<div><slot></slot></div>'
@@ -29,6 +35,8 @@ const globalComponents = {
 
 describe('UserProfile component', () => {
   beforeAll(() => {
+    jest.useFakeTimers();
+
     wrapper = mount(UserProfile, {
       props: {
         user: { isLogin: false }
@@ -42,18 +50,31 @@ describe('UserProfile component', () => {
     });
   });
 
-  it('sholud render login button when login is false', async () => {
+  afterEach(() => {
+    (message as jest.Mocked<typeof message>).success.mockReset();
+  });
+
+  it('should render login button when login is false', async () => {
     expect(wrapper.get('div').text()).toBe('登入');
     await wrapper.get('div').trigger('click');
     expect(message.success).toHaveBeenCalled();
     expect(store.state.user.userName).toBe('Mars');
   });
 
-  it('sholud render username when login is true', async () => {
+  it('should render username when login is true', async () => {
     await wrapper.setProps({
       user: { isLogin: true, userName: 'Mars' }
     });
     expect(wrapper.get('.user-profile').html()).toContain('Mars');
     expect(wrapper.find('.user-profile-dropdown').exists()).toBeTruthy();
+  });
+
+  it('should call logout and show message, call router.push after timeout', async () => {
+    await wrapper.get('.user-profile-dropdown div').trigger('click');
+    expect(store.state.user.isLogin).toBeFalsy;
+    expect(message.success).toHaveBeenCalledTimes(1);
+
+    jest.runAllTimers();
+    expect(mockedRoutes).toEqual(['/']);
   });
 });
