@@ -30,7 +30,7 @@ export const testComponents: ComponentData[] = [
       textAlign: 'left',
       fontFamily: '',
       lineHeight: '1',
-      color: 'green'
+      color: '#000000'
     }
   },
   {
@@ -42,7 +42,8 @@ export const testComponents: ComponentData[] = [
       textAlign: 'left',
       fontWeight: 'bold',
       fontFamily: '',
-      lineHeight: '2'
+      lineHeight: '2',
+      color: '#000000'
     }
   },
   {
