@@ -1,5 +1,6 @@
 <template>
   <div class="homepage-container">
+    <Uploader url="https://httpbin.org/post" />
     <a-layout :style="{ background: '#fff' }">
       <a-layout-header class="header">
         <div class="page-title" :style="{ color: '#fff' }">
@@ -23,10 +24,12 @@
 import { defineComponent, computed } from 'vue';
 import { useStore } from 'vuex';
 import UserProfile from './components/UserProfile.vue';
+import Uploader from '@/components/Uploader.vue';
 
 export default defineComponent({
   components: {
-    UserProfile
+    UserProfile,
+    Uploader
   },
   name: 'App',
   setup() {
@@ -42,7 +45,7 @@ export default defineComponent({
 <style>
 .header {
   display: flex;
-  justify-content: space-between;
   align-items: center;
+  justify-content: space-between;
 }
 </style>
