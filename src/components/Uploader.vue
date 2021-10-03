@@ -44,7 +44,7 @@
 </template>
 
 <script lang="ts">
-import { computed, defineComponent, ref, reactive } from 'vue';
+import { computed, defineComponent, ref, reactive, PropType } from 'vue';
 import {
   DeleteOutlined,
   LoadingOutlined,
@@ -54,6 +54,7 @@ import { v4 as uuidv4 } from 'uuid';
 import axios from 'axios';
 
 type UploadStatus = 'ready' | 'loading' | 'success' | 'error';
+type CheckUpload = (file: File) => boolean | Promise<File>;
 export interface UploadFile {
   uid: string;
   size: number;
@@ -74,6 +75,9 @@ export default defineComponent({
     url: {
       type: String,
       required: true
+    },
+    beforeUpload: {
+      type: Function as PropType<CheckUpload>
     }
   },
   setup(props) {
@@ -102,47 +106,71 @@ export default defineComponent({
       }
     };
 
+    const postFile = (file: File) => {
+      const formData = new FormData();
+
+      const fileObj = reactive<UploadFile>({
+        uid: uuidv4(),
+        size: file.size,
+        name: file.name,
+        status: 'loading',
+        raw: file
+      });
+      uploadedFiles.value.push(fileObj);
+
+      formData.append(file.name, file);
+
+      fileStatus.value = 'loading';
+      axios
+        .post(props.url, formData, {
+          headers: {
+            'Content-Type': 'multipart/form-data'
+          }
+        })
+        .then(res => {
+          console.log(res.data);
+          fileStatus.value = 'success';
+          fileObj.status = 'success';
+          fileObj.res = res.data;
+        })
+        .catch(() => {
+          fileStatus.value = 'error';
+          fileObj.status = 'error';
+        })
+        .finally(() => {
+          // NOTE: reset input, 避免上傳兩張相同圖片, 不會觸發 change 問題
+          if (fileInput.value) {
+            fileInput.value.value = '';
+          }
+        });
+    };
+
     const handleFileChange = (e: Event) => {
       const target = e.target as HTMLInputElement;
       const files = target.files;
       if (files) {
         const uploadedFile = files[0];
-        const formData = new FormData();
+        if (!props.beforeUpload) {
+          return postFile(uploadedFile);
+        }
 
-        const fileObj = reactive<UploadFile>({
-          uid: uuidv4(),
-          size: uploadedFile.size,
-          name: uploadedFile.name,
-          status: 'loading',
-          raw: uploadedFile
-        });
-        uploadedFiles.value.push(fileObj);
+        const result = props.beforeUpload(uploadedFile);
+        if (result === true) {
+          return postFile(uploadedFile);
+        }
 
-        formData.append(uploadedFile.name, uploadedFile);
-
-        fileStatus.value = 'loading';
-        axios
-          .post(props.url, formData, {
-            headers: {
-              'Content-Type': 'multipart/form-data'
-            }
-          })
-          .then(res => {
-            console.log(res.data);
-            fileStatus.value = 'success';
-            fileObj.status = 'success';
-            fileObj.res = res.data;
-          })
-          .catch(() => {
-            fileStatus.value = 'error';
-            fileObj.status = 'error';
-          })
-          .finally(() => {
-            // NOTE: reset input, 避免上傳兩張相同圖片, 不會觸發 change 問題
-            if (fileInput.value) {
-              fileInput.value.value = '';
-            }
-          });
+        if (result && result instanceof Promise) {
+          return result
+            .then(processedFile => {
+              if (!(processedFile instanceof File)) {
+                throw new Error(
+                  'beforeUpload Promise should return File object'
+                );
+              }
+              postFile(processedFile);
+            })
+            .catch(err => console.log(err));
+        }
       }
     };
 

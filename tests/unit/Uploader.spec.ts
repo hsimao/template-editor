@@ -126,4 +126,73 @@ describe('Uploader Component', () => {
       done();
     });
   });
+
+  it('before upload check', done => {
+    const callback = jest.fn();
+    mockedAxios.post.mockResolvedValueOnce({ data: { url: 'dummy.url' } });
+
+    const checkFileSize = (file: File) => {
+      if (file.size > 2) {
+        callback();
+        return false;
+      }
+      return true;
+    };
+
+    const wrapper = shallowMount(Uploader, {
+      props: {
+        url: 'test.url',
+        beforeUpload: checkFileSize
+      }
+    });
+
+    const fileInput = wrapper.get('input').element as HTMLInputElement;
+    setInputValue(fileInput);
+    wrapper.get('input').trigger('change');
+
+    wrapper.vm.$nextTick(async () => {
+      expect(mockedAxios.post).not.toHaveBeenCalled();
+      expect(wrapper.findAll('.uploader__item').length).toBe(0);
+      expect(callback).toHaveBeenCalled();
+      done();
+    });
+  });
+
+  it('before upload check using Promise', async () => {
+    mockedAxios.post.mockResolvedValueOnce({ data: { url: 'dummy.url' } });
+    const failedPromise = (file: File) => Promise.reject('wrong type');
+    const wrapper = shallowMount(Uploader, {
+      props: {
+        url: 'test.url',
+        beforeUpload: failedPromise
+      }
+    });
+
+    const fileInput = wrapper.get('input').element as HTMLInputElement;
+    setInputValue(fileInput);
+    wrapper.get('input').trigger('change');
+    await flushPromises();
+    expect(mockedAxios.post).not.toHaveBeenCalled();
+    expect(wrapper.findAll('.uploader__item').length).toBe(0);
+
+    // 測試 beforeUpload 回傳 Promise 回應成功, 但不是 file 格式時的情況
+    const successPromisWithWrongType = () => Promise.resolve('abc');
+    await wrapper.setProps({ beforeUpload: successPromisWithWrongType });
+    wrapper.get('input').trigger('change');
+    await flushPromises();
+    expect(mockedAxios.post).not.toHaveBeenCalled();
+
+    // 測試 beforeUpload 回傳 Promise 回應成功時的狀況
+    const successPromise = (file: File) => {
+      const newFile = new File([file], 'text.docx', { type: file.type });
+      return Promise.resolve(newFile);
+    };
+    await wrapper.setProps({ beforeUpload: successPromise });
+    wrapper.get('input').trigger('change');
+    await flushPromises();
+    expect(mockedAxios.post).toHaveBeenCalled();
+    const firstItem = wrapper.get('.uploader__item:first-child');
+    expect(firstItem.classes()).toContain('uploader__item--success');
+    expect(firstItem.get('.uploader__filename').text()).toBe('text.docx');
+  });
 });
