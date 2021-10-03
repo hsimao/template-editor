@@ -1,16 +1,23 @@
 <template>
   <div class="uploader">
-    <button
-      class="uploader__button"
-      type="primary"
-      @click="triggerUpload"
-      :disabled="isUploading"
-    >
-      <LoadingOutlined v-if="isUploading" />
-      <template v-else>
-        上傳
-      </template>
-    </button>
+    <div class="uploader__upload-area" @click="triggerUpload">
+      <slot v-if="isUploading" name="loading">
+        <button class="uploader__button" disabled>
+          <LoadingOutlined v-if="isUploading" />
+        </button>
+      </slot>
+
+      <slot
+        v-else-if="lastFileData && lastFileData.loaded"
+        name="uploaded"
+        :uploadedData="lastFileData.data"
+      >
+        <button class="uploader__button">上傳</button>
+      </slot>
+      <slot v-else name="default">
+        <button class="uploader__button">上傳</button>
+      </slot>
+    </div>
     <input
       v-show="false"
       ref="fileInput"
@@ -53,6 +60,7 @@ export interface UploadFile {
   name: string;
   status: UploadStatus;
   raw: File;
+  res?: any;
 }
 
 export default defineComponent({
@@ -72,6 +80,17 @@ export default defineComponent({
     const fileInput = ref<null | HTMLInputElement>(null);
     const fileStatus = ref<UploadStatus>('ready');
     const uploadedFiles = ref<UploadFile[]>([]);
+
+    const lastFileData = computed(() => {
+      const lastFile = uploadedFiles.value[uploadedFiles.value.length - 1];
+      if (lastFile) {
+        return {
+          loaded: lastFile.status === 'success',
+          data: lastFile.res
+        };
+      }
+      return false;
+    });
 
     const isUploading = computed(() =>
       uploadedFiles.value.some(file => file.status === 'loading')
@@ -109,9 +128,10 @@ export default defineComponent({
             }
           })
           .then(res => {
-            console.log(res);
+            console.log(res.data);
             fileStatus.value = 'success';
             fileObj.status = 'success';
+            fileObj.res = res.data;
           })
           .catch(() => {
             fileStatus.value = 'error';
@@ -132,6 +152,7 @@ export default defineComponent({
 
     return {
       uploadedFiles,
+      lastFileData,
       isUploading,
       fileInput,
       triggerUpload,
@@ -153,6 +174,7 @@ export default defineComponent({
   &__button {
     padding: 3px;
     max-width: 100px;
+    width: 100%;
     border: none;
     border-radius: 3px;
     background-color: #3f9eff;

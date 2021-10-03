@@ -1,6 +1,14 @@
 <template>
   <div class="homepage-container">
-    <Uploader url="https://httpbin.org/post" />
+    <Uploader url="https://httpbin.org/post">
+      自定義上傳按鈕
+      <template #uploaded="{ uploadedData }">
+        自定義上傳完後 {{ uploadedData.url }}
+      </template>
+      <template #loading>
+        自定義 loading
+      </template>
+    </Uploader>
     <a-layout :style="{ background: '#fff' }">
       <a-layout-header class="header">
         <div class="page-title" :style="{ color: '#fff' }">

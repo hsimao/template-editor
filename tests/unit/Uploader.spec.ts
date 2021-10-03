@@ -1,4 +1,4 @@
-import { shallowMount, VueWrapper } from '@vue/test-utils';
+import { mount, shallowMount, VueWrapper } from '@vue/test-utils';
 import Uploader from '@/components/Uploader.vue';
 import axios from 'axios';
 import flushPromises from 'flush-promises';
@@ -16,6 +16,14 @@ const iconComponents = {
   DeleteOutlined: mockComponent,
   LoadingOutlined: mockComponent,
   FileOutlined: mockComponent
+};
+
+const setInputValue = (input: HTMLInputElement) => {
+  const files = [testFile] as any;
+  Object.defineProperty(input, 'files', {
+    value: files,
+    writable: false
+  });
 };
 
 describe('Uploader Component', () => {
@@ -46,24 +54,12 @@ describe('Uploader Component', () => {
     // 模擬檔案上傳
     // 將 testFile 傳到 input 內
     const fileInput = wrapper.get('input').element as HTMLInputElement;
-    const files = [testFile] as any;
-    Object.defineProperty(fileInput, 'files', {
-      value: files,
-      writable: false
-    });
+    setInputValue(fileInput);
 
     // 觸發 change 事件
     wrapper.get('input').trigger('change');
     wrapper.vm.$nextTick(async () => {
       expect(mockedAxios.post).toHaveBeenCalledTimes(1);
-
-      // loading svg
-      expect(
-        wrapper
-          .get('button')
-          .find('svg')
-          .exists()
-      ).toBeTruthy();
 
       // button disabled
       expect(wrapper.get('button').attributes()).toHaveProperty('disabled');
@@ -87,14 +83,6 @@ describe('Uploader Component', () => {
     wrapper.vm.$nextTick(async () => {
       expect(mockedAxios.post).toHaveBeenCalledTimes(1);
 
-      // loading svg
-      expect(
-        wrapper
-          .get('button')
-          .find('svg')
-          .exists()
-      ).toBeTruthy();
-
       await flushPromises();
       expect(wrapper.get('button').text()).toBe('上傳');
       expect(wrapper.findAll('.uploader__item').length).toBe(2);
@@ -102,6 +90,39 @@ describe('Uploader Component', () => {
       expect(lastItem.classes()).toContain('uploader__item--error');
       await lastItem.get('.uploader__delete').trigger('click');
       expect(wrapper.findAll('.uploader__item').length).toBe(1);
+      done();
+    });
+  });
+
+  it('should show the correct interface when using custom slot', done => {
+    mockedAxios.post.mockResolvedValueOnce({ data: { url: 'dummy.url' } });
+    mockedAxios.post.mockResolvedValueOnce({ data: { url: 'xyz.url' } });
+
+    const wrapper = mount(Uploader, {
+      props: {
+        url: 'test.url'
+      },
+      global: {
+        stubs: iconComponents
+      },
+      slots: {
+        default: '<button>Custom buttom</button>',
+        loading: '<div class="loading">custom loading</div>',
+        uploaded: `<template #uploaded="{ uploadedData }">
+          <div class="custom-loaded">{{ uploadedData.url }}</div>
+        </template>
+        `
+      }
+    });
+
+    expect(wrapper.get('button').text()).toBe('Custom buttom');
+    const fileInput = wrapper.get('input').element as HTMLInputElement;
+    setInputValue(fileInput);
+    wrapper.get('input').trigger('change');
+    wrapper.vm.$nextTick(async () => {
+      expect(wrapper.get('.loading').text()).toBe('custom loading');
+      await flushPromises();
+      expect(wrapper.get('.custom-loaded').text()).toBe('dummy.url');
       done();
     });
   });
