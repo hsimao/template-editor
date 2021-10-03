@@ -39,19 +39,23 @@ describe('Uploader Component', () => {
     });
 
     // 觸發 change 事件
-    await wrapper.get('input').trigger('change');
-    expect(mockedAxios.post).toHaveBeenCalledTimes(1);
-    // expect(wrapper.get('button').text()).toBe('上傳中...');
-    await flushPromises();
-    expect(wrapper.get('button').text()).toBe('上傳成功');
+    wrapper.get('input').trigger('change');
+    wrapper.vm.$nextTick(async () => {
+      expect(mockedAxios.post).toHaveBeenCalledTimes(1);
+      expect(wrapper.get('button').text()).toBe('上傳中...');
+      await flushPromises();
+      expect(wrapper.get('button').text()).toBe('上傳成功');
+    });
   });
 
   it('should return error text whene post is rejected', async () => {
     mockedAxios.post.mockRejectedValueOnce({ error: 'error' });
-    await wrapper.get('input').trigger('change');
-    expect(mockedAxios.post).toHaveBeenCalledTimes(1);
-    // expect(wrapper.get('button').text()).toBe('上傳中...');
-    await flushPromises();
-    expect(wrapper.get('button').text()).toBe('上傳失敗');
+    wrapper.get('input').trigger('change');
+    wrapper.vm.$nextTick(async () => {
+      expect(mockedAxios.post).toHaveBeenCalledTimes(1);
+      expect(wrapper.get('button').text()).toBe('上傳中...');
+      await flushPromises();
+      expect(wrapper.get('button').text()).toBe('上傳失敗');
+    });
   });
 });
