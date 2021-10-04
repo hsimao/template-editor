@@ -2,14 +2,31 @@
   <div class="uploader">
     <div class="uploader__upload-area" :class="uploadAreaClass" v-on="events">
       <slot v-if="isUploading" name="loading">
-        <button class="uploader__button" disabled>
+        <button class="uploader__submit" disabled>
           <LoadingOutlined v-if="isUploading" />
         </button>
       </slot>
 
-      <!-- 上傳完後樣式 -->
+      <slot v-else name="default">
+        <div class="uploader__btns">
+          <button class="uploader__file" @click.stop="triggerUpload">
+            <UploadOutlined />
+            <span>選擇檔案</span>
+          </button>
+
+          <button
+            v-if="showUploadBtn"
+            class="uploader__submit"
+            @click.stop="uploadFiles"
+          >
+            上傳
+          </button>
+        </div>
+      </slot>
+
+      <!-- 圖片準備完後的樣式 -->
       <slot
-        v-else-if="lastFileData && lastFileData.loaded"
+        v-if="showReadyPreview"
         name="uploaded"
         :uploadedData="lastFileData.data"
       >
@@ -19,14 +36,6 @@
           class="uploader__preview"
           :src="previewSrc"
         />
-        <button class="uploader__button">上傳</button>
-      </slot>
-
-      <slot v-else name="default">
-        <button class="uploader__button">
-          <UploadOutlined />
-          <span>上傳</span>
-        </button>
       </slot>
     </div>
 
@@ -39,7 +48,7 @@
     />
     <ul class="uploader__items">
       <li
-        v-for="file in uploadedFiles"
+        v-for="file in filesList"
         :key="file.uid"
         :class="`uploader__item uploader__item--${file.status}`"
       >
@@ -96,12 +105,15 @@ export default defineComponent({
     drag: {
       type: Boolean,
       default: false
+    },
+    autoUpload: {
+      type: Boolean,
+      default: true
     }
   },
   setup(props) {
     const fileInput = ref<null | HTMLInputElement>(null);
-    const fileStatus = ref<UploadStatus>('ready');
-    const uploadedFiles = ref<UploadFile[]>([]);
+    const filesList = ref<UploadFile[]>([]);
     const isDragOver = ref(false);
     const previewSrc = ref('');
 
@@ -117,9 +129,10 @@ export default defineComponent({
     });
 
     const lastFileData = computed(() => {
-      const lastFile = uploadedFiles.value[uploadedFiles.value.length - 1];
+      const lastFile = filesList.value[filesList.value.length - 1];
       if (lastFile) {
         return {
+          ready: lastFile.status === 'ready',
           loaded: lastFile.status === 'success',
           data: lastFile.res
         };
@@ -131,8 +144,25 @@ export default defineComponent({
       return props.drag && previewSrc.value;
     });
 
+    const showUploadBtn = computed(() => {
+      return (
+        !props.autoUpload && lastFileData.value && lastFileData.value.ready
+      );
+    });
+
+    const showReadyPreview = computed(() => {
+      if (lastFileData.value) {
+        if (props.autoUpload) {
+          return lastFileData.value.loaded;
+        } else {
+          return lastFileData.value.ready;
+        }
+      }
+      return false;
+    });
+
     const isUploading = computed(() =>
-      uploadedFiles.value.some(file => file.status === 'loading')
+      filesList.value.some(file => file.status === 'loading')
     );
 
     const triggerUpload = () => {
@@ -142,7 +172,7 @@ export default defineComponent({
     };
 
     const handlePreview = (file: File) => {
-      if (/\.(jpe?g|png|gif)$/i.test(file.name)) {
+      if (/\.(jpe?g|png|gif|webp)$/i.test(file.name)) {
         const reader = new FileReader();
         reader.addEventListener(
           'load',
@@ -155,21 +185,11 @@ export default defineComponent({
       }
     };
 
-    const postFile = (file: File) => {
+    const postFile = (readyFile: UploadFile) => {
       const formData = new FormData();
+      formData.append(readyFile.name, readyFile.raw);
 
-      const fileObj = reactive<UploadFile>({
-        uid: uuidv4(),
-        size: file.size,
-        name: file.name,
-        status: 'loading',
-        raw: file
-      });
-      uploadedFiles.value.push(fileObj);
-
-      formData.append(file.name, file);
-
-      fileStatus.value = 'loading';
+      readyFile.status = 'loading';
       axios
         .post(props.url, formData, {
           headers: {
@@ -178,14 +198,11 @@ export default defineComponent({
         })
         .then(res => {
           console.log(res.data);
-          handlePreview(file);
-          fileStatus.value = 'success';
-          fileObj.status = 'success';
-          fileObj.res = res.data;
+          readyFile.status = 'success';
+          readyFile.res = res.data;
         })
         .catch(() => {
-          fileStatus.value = 'error';
-          fileObj.status = 'error';
+          readyFile.status = 'error';
         })
         .finally(() => {
           // NOTE: reset input, 避免上傳兩張相同圖片, 不會觸發 change 問題
@@ -195,28 +212,55 @@ export default defineComponent({
         });
     };
 
-    const handleBeforeUpload = (file: File) => {
+    const addFileToList = (file: File) => {
+      const fileObj = reactive<UploadFile>({
+        uid: uuidv4(),
+        size: file.size,
+        name: file.name,
+        status: 'ready',
+        raw: file
+      });
+      filesList.value.push(fileObj);
+
+      handlePreview(file);
+
+      if (props.autoUpload) {
+        postFile(fileObj);
+      }
+    };
+
+    const beforeUploadChcek = (files: null | FileList) => {
       previewSrc.value = '';
 
-      if (!props.beforeUpload) {
-        return postFile(file);
-      }
+      if (files) {
+        if (!props.beforeUpload) {
+          return addFileToList(files[0]);
+        }
 
-      const result = props.beforeUpload(file);
-      if (result === true) {
-        return postFile(file);
-      }
+        const result = props.beforeUpload(files[0]);
+        if (result === true) {
+          return addFileToList(files[0]);
+        }
 
-      if (result && result instanceof Promise) {
-        return result
-          .then(processedFile => {
-            if (!(processedFile instanceof File)) {
-              throw new Error('beforeUpload Promise should return File object');
-            }
-            postFile(processedFile);
-          })
-          .catch(err => console.log(err));
+        if (result && result instanceof Promise) {
+          return result
+            .then(processedFile => {
+              if (!(processedFile instanceof File)) {
+                throw new Error(
+                  'beforeUpload Promise should return File object'
+                );
+              }
+              addFileToList(processedFile);
+            })
+            .catch(err => console.log(err));
+        }
       }
+    };
+
+    const uploadFiles = () => {
+      filesList.value
+        .filter(file => file.status === 'ready')
+        .forEach(readyFile => postFile(readyFile));
     };
 
     const handleDrag = (e: DragEvent, over: boolean) => {
@@ -228,19 +272,17 @@ export default defineComponent({
       e.preventDefault();
       isDragOver.value = false;
       if (e.dataTransfer) {
-        handleBeforeUpload(e.dataTransfer.files[0]);
+        beforeUploadChcek(e.dataTransfer.files);
       }
     };
 
     const handleFileChange = (e: Event) => {
       const target = e.target as HTMLInputElement;
-      if (target.files) {
-        handleBeforeUpload(target.files[0]);
-      }
+      beforeUploadChcek(target.files);
     };
 
     const handleRemoveFile = (id: string) => {
-      uploadedFiles.value = uploadedFiles.value.filter(file => file.uid !== id);
+      filesList.value = filesList.value.filter(file => file.uid !== id);
     };
 
     let events: { [key: string]: (e: any) => void } = {
@@ -261,15 +303,19 @@ export default defineComponent({
     }
 
     return {
-      uploadedFiles,
+      filesList,
       lastFileData,
       isUploading,
       previewSrc,
       showPreviewImg,
+      showUploadBtn,
+      showReadyPreview,
       uploadAreaClass,
       fileInput,
       handleFileChange,
+      triggerUpload,
       handleRemoveFile,
+      uploadFiles,
       events
     };
   }
@@ -306,25 +352,26 @@ export default defineComponent({
         border: 2px dashed #3f9eff;
         background-color: rgba(#3f9eff, 0.2);
       }
-
-      .uploader__button {
-        background-color: transparent;
-        color: rgba(#000, 0.85);
-        display: flex;
-        flex-flow: column nowrap;
-        align-items: center;
-        font-size: 16px;
-      }
     }
   }
 
   &__preview {
     width: 100%;
     height: 100%;
+    margin-top: 6px;
     object-fit: contain;
   }
 
-  &__button {
+  &__btns {
+    display: flex;
+
+    > button + button {
+      margin-left: 4px;
+    }
+  }
+
+  &__submit,
+  &__file {
     padding: 3px;
     max-width: 100px;
     width: 100%;

@@ -45,7 +45,7 @@ describe('Uploader Component', () => {
 
   it('basic layout before uploading', () => {
     expect(wrapper.find('button').exists()).toBeTruthy();
-    expect(wrapper.get('button').text()).toBe('上傳');
+    expect(wrapper.get('button').text()).toBe('選擇檔案');
     expect(wrapper.get('.uploader__input').isVisible()).toBeFalsy();
   });
 
@@ -70,7 +70,7 @@ describe('Uploader Component', () => {
       expect(firstItem.classes()).toContain('uploader__item--loading');
 
       await flushPromises();
-      expect(wrapper.get('button').text()).toBe('上傳');
+      expect(wrapper.get('.uploader__file').text()).toBe('選擇檔案');
       expect(firstItem.classes()).toContain('uploader__item--success');
       expect(firstItem.get('.uploader__filename').text()).toBe(testFile.name);
       done();
@@ -84,7 +84,7 @@ describe('Uploader Component', () => {
       expect(mockedAxios.post).toHaveBeenCalledTimes(1);
 
       await flushPromises();
-      expect(wrapper.get('button').text()).toBe('上傳');
+      expect(wrapper.get('button').text()).toBe('選擇檔案');
       expect(wrapper.findAll('.uploader__item').length).toBe(2);
       const lastItem = wrapper.get('.uploader__item:last-child');
       expect(lastItem.classes()).toContain('uploader__item--error');
@@ -216,5 +216,30 @@ describe('Uploader Component', () => {
     expect(mockedAxios.post).toHaveBeenCalled();
     await flushPromises();
     expect(wrapper.findAll('.uploader__item').length).toBe(1);
+  });
+
+  it('testing manual upload process', async () => {
+    mockedAxios.post.mockResolvedValueOnce({ data: { url: 'dummy.url' } });
+    const wrapper = shallowMount(Uploader, {
+      props: {
+        url: 'test.url',
+        drag: true,
+        autoUpload: false
+      }
+    });
+
+    const fileInput = wrapper.get('input').element as HTMLInputElement;
+    setInputValue(fileInput);
+    await wrapper.get('input').trigger('change');
+    expect(wrapper.findAll('.uploader__item').length).toBe(1);
+
+    const firstItem = wrapper.get('.uploader__item:first-child');
+    expect(firstItem.classes()).toContain('uploader__item--ready');
+
+    wrapper.vm.uploadFiles();
+    expect(mockedAxios.post).toHaveBeenCalled();
+
+    await flushPromises();
+    expect(firstItem.classes()).toContain('uploader__item--success');
   });
 });
