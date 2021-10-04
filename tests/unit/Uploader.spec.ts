@@ -195,4 +195,26 @@ describe('Uploader Component', () => {
     expect(firstItem.classes()).toContain('uploader__item--success');
     expect(firstItem.get('.uploader__filename').text()).toBe('text.docx');
   });
+
+  // 測試拖曳
+  it('testing drag and drop function', async () => {
+    mockedAxios.post.mockResolvedValueOnce({ data: { url: 'dummy.url' } });
+    const wrapper = shallowMount(Uploader, {
+      props: {
+        url: 'test.url',
+        drag: true
+      }
+    });
+
+    const uploadArea = wrapper.get('.uploader__upload-area');
+    await uploadArea.trigger('dragover');
+    expect(uploadArea.classes()).toContain('is-dragover');
+    await uploadArea.trigger('dragleave');
+    expect(uploadArea.classes()).not.toContain('is-dragover');
+
+    await uploadArea.trigger('drop', { dataTransfer: { files: [testFile] } });
+    expect(mockedAxios.post).toHaveBeenCalled();
+    await flushPromises();
+    expect(wrapper.findAll('.uploader__item').length).toBe(1);
+  });
 });

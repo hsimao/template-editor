@@ -9,6 +9,7 @@
         自定義 loading
       </template>
     </Uploader>
+    <Uploader url="https://httpbin.org/post" drag />
     <a-layout :style="{ background: '#fff' }">
       <a-layout-header class="header">
         <div class="page-title" :style="{ color: '#fff' }">
