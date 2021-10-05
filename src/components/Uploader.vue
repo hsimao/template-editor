@@ -28,14 +28,8 @@
       <slot
         v-if="showReadyPreview"
         name="uploaded"
-        :uploadedData="lastFileData.data"
+        :uploadedData="lastFileData"
       >
-        <!-- 預覽圖片 -->
-        <img
-          v-if="showPreviewImg"
-          class="uploader__preview"
-          :src="previewSrc"
-        />
       </slot>
     </div>
 
@@ -52,6 +46,12 @@
         :key="file.uid"
         :class="`uploader__item uploader__item--${file.status}`"
       >
+        <img
+          v-if="file.showPreview"
+          class="uploader__preview"
+          :src="file.url"
+          :alt="file.name"
+        />
         <FileOutlined />
         <span class="uploader__filename">{{ file.name }}</span>
 
@@ -77,6 +77,7 @@ import axios from 'axios';
 
 type UploadStatus = 'ready' | 'loading' | 'success' | 'error';
 type CheckUpload = (file: File) => boolean | Promise<File>;
+type FileListType = 'picture' | 'text';
 export interface UploadFile {
   uid: string;
   size: number;
@@ -84,6 +85,8 @@ export interface UploadFile {
   status: UploadStatus;
   raw: File;
   res?: any;
+  url?: string;
+  showPreview?: boolean;
 }
 
 export default defineComponent({
@@ -109,13 +112,16 @@ export default defineComponent({
     autoUpload: {
       type: Boolean,
       default: true
+    },
+    listType: {
+      type: String as PropType<FileListType>,
+      default: 'text'
     }
   },
   setup(props) {
     const fileInput = ref<null | HTMLInputElement>(null);
     const filesList = ref<UploadFile[]>([]);
     const isDragOver = ref(false);
-    const previewSrc = ref('');
 
     const uploadAreaClass = computed(() => {
       if (!props.drag) return '';
@@ -138,10 +144,6 @@ export default defineComponent({
         };
       }
       return false;
-    });
-
-    const showPreviewImg = computed(() => {
-      return props.drag && previewSrc.value;
     });
 
     const showUploadBtn = computed(() => {
@@ -171,18 +173,22 @@ export default defineComponent({
       }
     };
 
-    const handlePreview = (file: File) => {
-      if (/\.(jpe?g|png|gif|webp)$/i.test(file.name)) {
-        const reader = new FileReader();
-        reader.addEventListener(
-          'load',
-          function() {
-            previewSrc.value = this.result as string;
-          },
-          false
-        );
-        reader.readAsDataURL(file);
-      }
+    const getFilePreviewBase64 = (file: File): Promise<string> => {
+      return new Promise((resolve, reject) => {
+        if (/\.(jpe?g|png|gif|webp)$/i.test(file.name)) {
+          try {
+            const reader = new FileReader();
+            reader.readAsDataURL(file);
+            reader.addEventListener('load', () =>
+              resolve(reader.result as string)
+            );
+          } catch (err) {
+            reject(err);
+          }
+        } else {
+          reject();
+        }
+      });
     };
 
     const postFile = (readyFile: UploadFile) => {
@@ -212,7 +218,7 @@ export default defineComponent({
         });
     };
 
-    const addFileToList = (file: File) => {
+    const addFileToList = async (file: File) => {
       const fileObj = reactive<UploadFile>({
         uid: uuidv4(),
         size: file.size,
@@ -220,9 +226,20 @@ export default defineComponent({
         status: 'ready',
         raw: file
       });
-      filesList.value.push(fileObj);
 
-      handlePreview(file);
+      if (props.listType === 'picture') {
+        try {
+          const base64 = await getFilePreviewBase64(file);
+          if (base64) {
+            fileObj.url = base64;
+            fileObj.showPreview = true;
+          }
+        } catch (err) {
+          console.log('upload file error', err);
+        }
+      }
+
+      filesList.value.push(fileObj);
 
       if (props.autoUpload) {
         postFile(fileObj);
@@ -230,8 +247,6 @@ export default defineComponent({
     };
 
     const beforeUploadChcek = (files: null | FileList) => {
-      previewSrc.value = '';
-
       if (files) {
         if (!props.beforeUpload) {
           return addFileToList(files[0]);
@@ -306,8 +321,6 @@ export default defineComponent({
       filesList,
       lastFileData,
       isUploading,
-      previewSrc,
-      showPreviewImg,
       showUploadBtn,
       showReadyPreview,
       uploadAreaClass,
@@ -415,6 +428,12 @@ export default defineComponent({
     &--error {
       color: #f56c6b;
     }
+  }
+
+  &__preview {
+    width: 75px;
+    object-fit: contain;
+    margin-right: 8px;
   }
 
   &__delete {
