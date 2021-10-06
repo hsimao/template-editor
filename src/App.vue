@@ -1,5 +1,6 @@
 <template>
   <div class="homepage-container">
+    <UploaderStyled />
     <Uploader url="https://httpbin.org/post">
       自定義上傳按鈕
       <template #uploaded="{ uploadedData }">
@@ -34,11 +35,13 @@ import { defineComponent, computed } from 'vue';
 import { useStore } from 'vuex';
 import UserProfile from './components/UserProfile.vue';
 import Uploader from '@/components/Uploader.vue';
+import UploaderStyled from '@/components/UploaderStyled.vue';
 
 export default defineComponent({
   components: {
     UserProfile,
-    Uploader
+    Uploader,
+    UploaderStyled
   },
   name: 'App',
   setup() {

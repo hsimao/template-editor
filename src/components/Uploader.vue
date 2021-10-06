@@ -40,7 +40,7 @@
       type="file"
       @change="handleFileChange"
     />
-    <ul class="uploader__items">
+    <ul v-if="showUploadList" class="uploader__items">
       <li
         v-for="file in filesList"
         :key="file.uid"
@@ -116,6 +116,10 @@ export default defineComponent({
     listType: {
       type: String as PropType<FileListType>,
       default: 'text'
+    },
+    showUploadList: {
+      type: Boolean,
+      default: true
     }
   },
   setup(props) {
