@@ -7151,6 +7151,14 @@ map-visit@^1.0.0:
   dependencies:
     object-visit "^1.0.0"
 
+mars-component@^1.0.2:
+  version "1.0.2"
+  resolved "https://registry.yarnpkg.com/mars-component/-/mars-component-1.0.2.tgz#fc3d054946067de117aaed654b54675db42935d4"
+  integrity sha512-rKOf/Riu5WdM0DMlf8oHQAobp0gv/r84/NYUw/0XnNM5x8GffbjR3LsFnYUFUB/UAzsPAu/sDeKp1l5YhlKtIQ==
+  dependencies:
+    core-js "^3.6.5"
+    lodash-es "^4.17.21"
+
 md5.js@^1.3.4:
   version "1.3.5"
   resolved "https://registry.yarnpkg.com/md5.js/-/md5.js-1.3.5.tgz#b5d07b8e3216e3e27cd728d72f70d1e6a342005f"

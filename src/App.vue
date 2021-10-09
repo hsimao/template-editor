@@ -1,5 +1,6 @@
 <template>
   <div class="homepage-container">
+    <AppHeader />
     <UploaderStyled />
     <Uploader url="https://httpbin.org/post">
       自定義上傳按鈕
