@@ -1,5 +1,17 @@
 <template>
   <div class="homepage-container">
+    <AppHeader />
+    <UploaderStyled />
+    <Uploader url="https://httpbin.org/post">
+      自定義上傳按鈕
+      <template #uploaded="{ uploadedData }">
+        自定義上傳完後 {{ uploadedData.url }}
+      </template>
+      <template #loading>
+        自定義 loading
+      </template>
+    </Uploader>
+    <Uploader url="https://httpbin.org/post" listType="picture" />
     <a-layout :style="{ background: '#fff' }">
       <a-layout-header class="header">
         <div class="page-title" :style="{ color: '#fff' }">
@@ -23,10 +35,14 @@
 import { defineComponent, computed } from 'vue';
 import { useStore } from 'vuex';
 import UserProfile from './components/UserProfile.vue';
+import Uploader from '@/components/Uploader.vue';
+import UploaderStyled from '@/components/UploaderStyled.vue';
 
 export default defineComponent({
   components: {
-    UserProfile
+    UserProfile,
+    Uploader,
+    UploaderStyled
   },
   name: 'App',
   setup() {
@@ -42,7 +58,7 @@ export default defineComponent({
 <style>
 .header {
   display: flex;
-  justify-content: space-between;
   align-items: center;
+  justify-content: space-between;
 }
 </style>
